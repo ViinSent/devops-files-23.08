@@ -1,0 +1,40 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+Vagrant.configure("2") do |config|
+
+    config.vm.box = "generic/debian10"
+    config.vm.synced_folder  ".", "/vagrant", disabled: false
+    config.vm.network "private_network", ip: "192.168.33.40"
+  
+    config.vm.provider "virtualbox" do |vb|
+        vb.memory = 2048
+        #vb.memory = 4096
+        vb.cpus   = 2
+        #vb.customize ["modifyvm", :id, "--clipboard", "bidirectional"]
+        #vb.gui = true
+    end
+    config.vm.provision "shell", inline: <<-SHELL
+        apt-get update
+        apt-get install -y ca-certificates curl gnupg lsb-release gnome-core gnome
+        
+        install -m 0755 -d /etc/apt/keyrings
+        curl -fsSL https://download.docker.com/linux/debian/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+        chmod a+r /etc/apt/keyrings/docker.gpg
+
+        echo "deb [arch="$(dpkg --print-architecture)" signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/debian \
+            "$(. /etc/os-release && echo "$VERSION_CODENAME")" stable" | \
+        sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+
+        apt-get update
+        VERSION_STRING="5:20.10.24~3-0~debian-buster"
+        apt-get install -y docker-ce=$VERSION_STRING docker-ce-cli=$VERSION_STRING containerd.io docker-buildx-plugin docker-compose-plugin
+        #apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+
+        usermod -aG docker vagrant
+        sed -i "s/^#force_color_prompt=yes\$/force_color_prompt=yes/g" /home/vagrant/.bashrc
+        sed -i "s/^#alias ll='ls -l'\$/alias ll='ls -la'/g" /home/vagrant/.bashrc
+        systemctl enable gdm3
+        systemctl start gdm3        
+    SHELL
+end

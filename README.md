@@ -8,3 +8,4 @@
 - [Домашнее задание 5](07-jenkins/README.md#домашнее-задание-6) (jenkins)
 - [Домашнее задание 6](08-nexus/README.md#домашнее-задание-7) (nexus)
 - [Домашнее задание 7](09-docker/README.md#домашнее-задание-8) (Dockerfile)
+- [Домашнее задание 8](10-pipeline/README.md#домашнее-задание-9) (Jenkinsfile)

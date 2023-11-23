@@ -7,29 +7,21 @@
     debug:
       msg: "Hello, world!"
 
-  - name: Install Apache
-    become: yes
-    apt:
-      name: apache2
-      state: present
+  - name: Create file
+    file:
+      path: /vagrant/test.txt
+      state: touch
 
-  - name: Install Vim
-    become: yes
-    apt:
-      name: vim
-      state: present
-      update_cache: true
+  - name: add new line1
+    lineinfile:
+      path: /vagrant/test.txt
+      line: new line
 
-  - name: Install mc
-    become: yes
-    apt:
-      name: mc
-      state: present
-      update_cache: true
+  - name: add new line2
+    lineinfile:
+      path: /vagrant/test.txt
+      line: new line
 
-  - name: Print Linux version
-    shell: echo $(cat /etc/os-release) >testfile
-    args:
-      chdir: /home/vagrant
-      creates: testfile
+  # - name: add new line3
+  #   shell: echo "new line" >> /vagrant/test.txt
 

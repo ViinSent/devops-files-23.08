@@ -1,0 +1,19 @@
+directories:
+  dir1:
+    path: /home/vagrant/read
+    mode: '0555'
+    owner: vagrant
+  dir2:
+    path: /home/vagrant/full
+    mode: '0777'
+    owner: vagrant
+  dir3:
+    path: /tmp/root
+    mode: '0700'
+    owner: root
+  dir4:
+    path: /tmp/vagrant
+    mode: '0750'
+    owner: vagrant
+
+wcg_path: /opt/wcg

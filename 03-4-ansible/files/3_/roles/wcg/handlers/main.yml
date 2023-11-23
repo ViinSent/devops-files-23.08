@@ -1,0 +1,8 @@
+---
+- name: wcg-service
+  systemd: 
+    name: wcg
+    state: restarted
+    daemon_reload: true
+    enabled: true
+    

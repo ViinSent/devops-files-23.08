@@ -2,3 +2,5 @@ desktop.ini
 
 config.json
 config.yml
+.vagrant
+.vscode

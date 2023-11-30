@@ -1,0 +1,56 @@
+---
+- name: Tasks play
+  hosts: all
+  roles:
+    - role: wcg
+      become: yes
+
+  # tasks:
+  # - name: Create directory /home/vagrant/read
+  #   file:
+  #     path: "{{ item.value.path }}"
+  #     state: directory
+  #     mode: "{{ item.value.mode }}"
+  #     owner: "{{ item.value.owner }}"
+  #     group: "{{ item.value.owner }}"
+  #   with_dict:
+  #   - "{{ directories }}"
+
+  # - name: Install packages
+  #   become: yes
+  #   apt:
+  #     name: 
+  #     - apache2
+  #     - vim
+  #     - mc
+  #     state: present
+  #     update_cache: true
+  #   when: ansible_facts.os_family == 'Debian' and ansible_facts.distribution_major_version >= "11"
+
+  # - name: Install packages
+  #   become: yes
+  #   dnf:
+  #     name: 
+  #     - httpd
+  #     - vim
+  #     - mc
+  #     state: present
+  #     update_cache: true
+  #   when: ansible_facts.os_family == 'RedHat'
+
+  # - name: start and enable apache
+  #   service:
+  #     name: apache2
+  #     state: started
+  #     enabled: true
+
+  # - name: Create file
+  #   become: yes
+  #   copy:
+  #     dest: /var/www/html/index.html
+  #     content: |
+  #       Mem size is: {{ ansible_facts.memtotal_mb }} 
+  #       disk size is: {{ ansible_facts.mounts[0].size_total }}
+
+
+

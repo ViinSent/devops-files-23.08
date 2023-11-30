@@ -1,0 +1,71 @@
+---
+- name: Create wcg group
+  group:
+    name: wcg
+    state: present
+  tags:
+  - create_users
+
+- name: Create wcg user
+  user:
+    name: wcg
+    comment: Word Cloud Generator
+    group: wcg
+  tags:
+  - create_users
+
+- name: Create directory for wcg
+  file:
+    path: "{{ wcg_path }}"
+    state: directory
+    owner: wcg
+    group: wcg
+
+- name: Get application file
+  ansible.builtin.get_url:
+    url: https://github.com/Fenikks/devops-files-23.08/raw/master/word-cloud-generator.gz
+    dest: /tmp/wcg.gz
+  register: get_file
+
+# - name: Unpack application file
+#   ansible.builtin.unarchive:
+#     src: /tmp/wcg.gz
+#     dest: /opt/wordcloud
+#     group: wcg
+#     owner: wcg
+#     mode: '0755'
+#     remote_src: true
+#   notify: wcg-service
+
+
+- name: Create systemd service
+  template:
+    src: wcg.service.j2
+    dest: /etc/systemd/system/wcg.service
+  notify: wcg-service
+
+- name: Stop wcg-service
+  service: 
+    name: wcg
+    state: stopped
+  ignore_errors: true
+
+- name: Unpack application file
+  shell: "gunzip -c /tmp/wcg.gz > {{ wcg_path }}/word-cloud-generator"
+  when: get_file.changed == true
+  notify: wcg-service
+
+- name: Change application file permissions
+  file:
+    dest: "{{ wcg_path }}/word-cloud-generator"
+    group: wcg
+    owner: wcg
+    mode: '0755'
+  notify: wcg-service
+
+- meta: flush_handlers
+
+- name: Remove  temp file
+  file:
+    state: absent
+    dest: /tmp/wcg.gz

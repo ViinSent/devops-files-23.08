@@ -1,0 +1,9 @@
+[Unit]
+Description=wcg service
+
+[Service]
+ExecStart={{ wcg_path }}/word-cloud-generator
+Restart=always
+
+[Install]
+WantedBy=multi-user.target

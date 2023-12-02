@@ -1,35 +1,51 @@
 ---
 - name: Test play
   hosts: all
+  become: yes
+  vars:
+    message: "Hello world"
+    packages:
+    - apache2
+    - htop
+    - wget
 
   tasks:
   - name: Hello world
     debug:
-      msg: "Hello, world!"
+      msg: "{{ message }}"
 
-  - name: Install Apache
-    become: yes
-    apt:
-      name: apache2
-      state: present
-
-  - name: Install Vim
-    become: yes
-    apt:
-      name: vim
-      state: present
-      update_cache: true
-
-  - name: Install mc
-    become: yes
-    apt:
-      name: mc
-      state: present
-      update_cache: true
-
-  - name: Print Linux version
-    shell: echo $(cat /etc/os-release) >testfile
+  - name: some changes in apache
+    shell: "echo something changed"
     args:
       chdir: /home/vagrant
       creates: testfile
+    notify: restart apache
 
+  # - name: Install packages
+  #   become: yes
+  #   apt:
+  #     name: "{{ packages }}"
+  #     state: present
+    
+
+  # - name: Install Vim
+  #   become: yes
+  #   apt:
+  #     name: 
+  #     - vim
+  #     - mc
+  #     state: present
+  #     update_cache: true
+
+  - name: Print Linux version
+    shell: echo "hellow ansible" >testfile
+    args:
+      chdir: /home/vagrant
+      creates: testfile
+    notify: restart apache
+
+  handlers:
+  - name: restart apache
+    service:
+      name: apache2
+      state: restarted

@@ -1,20 +1,28 @@
 ---
 - name: Tasks play
-  hosts: all
-  roles:
-    - role: wcg
-      become: yes
+  hosts: slave1
+  vars:
+    ansible_password: !vault |
+          $ANSIBLE_VAULT;1.1;AES256
+          38663966363666643264616235656236333839363066343930383438313538383733346431376136
+          3839656338396261366666393332323532646338363038300a616237666539646534656361343163
+          38393738383535333533623032626261616531383539626265633733366163383334353235306533
+          3365313566353939320a346630653034633131373764343431373130393766363937346563353866
+          6534
+  # roles:
+  #   - role: wcg
+  #     become: yes
 
-  # tasks:
-  # - name: Create directory /home/vagrant/read
-  #   file:
-  #     path: "{{ item.value.path }}"
-  #     state: directory
-  #     mode: "{{ item.value.mode }}"
-  #     owner: "{{ item.value.owner }}"
-  #     group: "{{ item.value.owner }}"
-  #   with_dict:
-  #   - "{{ directories }}"
+  tasks:
+  - name: Create directory /home/vagrant/read
+    file:
+      path: "{{ item.value.path }}"
+      state: directory
+      mode: "{{ item.value.mode }}"
+      owner: "{{ item.value.owner }}"
+      group: "{{ item.value.owner }}"
+    with_dict:
+    - "{{ directories }}"
 
   # - name: Install packages
   #   become: yes
@@ -38,11 +46,13 @@
   #     update_cache: true
   #   when: ansible_facts.os_family == 'RedHat'
 
-  # - name: start and enable apache
-  #   service:
-  #     name: apache2
-  #     state: started
-  #     enabled: true
+  - name: start and enable apache
+    become: true
+    service:
+      name: httpd
+      state: started
+      enabled: true
+    delegate_to: slave2
 
   # - name: Create file
   #   become: yes

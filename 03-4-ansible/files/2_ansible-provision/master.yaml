@@ -15,45 +15,33 @@
       regexp: "^#force_color_prompt=yes$"
       replace: "force_color_prompt=yes"
 
-  - name: install packages
-    become: yes
-    apt:
-      pkg:
-      - vim
-      - mc
-      - sshpass
-      state: present
-
 - name: Slave provision
   hosts: slave
 
   tasks:
+  - name: Set alias ll
+    replace:
+      path: /home/vagrant/.bashrc
+      regexp: "^#alias ll='ls -l'$"
+      replace: "alias ll='ls -la'"
+    register: replace_output
+
+
   - name: Hello world
     debug:
-      msg: "Hello, world!"
-
-  - name: Install Apache
-    become: yes
-    apt:
-      name: apache2
-      state: present
-
-  - name: Install Vim
-    become: yes
-    apt:
-      name: vim
-      state: present
-      update_cache: true
-
-  - name: Install mc
-    become: yes
-    apt:
-      name: mc
-      state: present
-      update_cache: true
+      var: replace_output
 
   - name: Print Linux version
     shell: echo $(cat /etc/os-release) >testfile
+    register: shell_output
     args:
       chdir: /home/vagrant
       creates: testfile
+
+  - name: read shell_output
+    debug:
+      msg: "shell output is {{ shell_output }}"
+
+  - name: read shell_output from var
+    debug:
+      var: shell_output

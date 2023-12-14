@@ -1,0 +1,150 @@
+---
+- name: Master provision
+  hosts: master
+  become: yes
+
+  tasks:
+
+  # - debug:
+  #     var: hostvars[item].ansible_host
+  #   with_items:
+  #   - "{{ groups['slaves'] }}"
+
+  - name: Change prive key  file permissions
+    file:
+      path: "/home/vagrant/.ssh/private_key_{{ item }}"
+      mode: '0600'
+    with_items:
+    - "{{ groups['slaves'] }}"
+
+  - name: Scan keys for slaves
+    known_hosts:
+      path: /etc/ssh/ssh_known_hosts
+      key: "{{ lookup('pipe', 'ssh-keyscan -trsa ' + hostvars[item].ansible_host) }}"
+      name: "{{ hostvars[item].ansible_host }}"
+      state: present
+    with_items:
+    - "{{ groups['slaves'] }}"
+
+  - name: Add public key for puppet repo
+    rpm_key:
+      state: present
+      key: https://yum.puppet.com/RPM-GPG-KEY-puppet-20250406
+
+  - name: Add puppet repo
+    yum:
+      name: https://yum.puppet.com/puppet7-release-el-8.noarch.rpm
+      state: present
+      update_cache: yes
+
+  - name: Install packages
+    yum:
+      name:
+      - puppetserver
+      - git      
+      state: present
+
+  - name: Reduse puppet server memory
+    replace:
+      path: /etc/sysconfig/puppetserver
+      regexp: "-Xm(s|x)2g"
+      replace: '-Xm\g<1>256m'
+
+  - name: Config autosign
+    copy:
+      dest: /etc/puppetlabs/puppet/autosign.conf
+      content: |
+        {{ item }}.puppet
+    with_items:
+    - "{{ groups['slaves'] }}"
+
+  - name: Config puppet agent
+    ini_file:
+      path: /etc/puppetlabs/puppet/puppet.conf
+      section: agent
+      option: "{{ item.option }}"
+      value: "{{ item.value }}"
+    with_items:
+    - {  option: "server", value: "master.puppet" }
+    - {  option: "runinterval", value: "30s" }
+
+  - name: Start puppetserver
+    service:
+      name: puppetserver
+      state: started
+      enabled: true
+
+  - name: Install r10k
+    gem:
+      name: r10k
+      state: present
+      executable: /opt/puppetlabs/puppet/bin/gem
+      user_install: no
+
+  - name: Create a directory for r10k config
+    file:
+      path: /etc/puppetlabs/r10k
+      state: directory
+      mode: '0755'
+
+  - name: Create r10k config
+    copy:
+      dest: /etc/puppetlabs/r10k/r10k.yaml
+      content: |
+        :cachedir: '/var/cache/r10k'
+        :sources:
+          :my-org:
+            :remote: 'https://github.com/Fenikks/master-puppet.git'
+            :basedir: '/etc/puppetlabs/code/environments'
+
+  - name: Sync repo
+    cron:
+      name: "sync repo"
+      minute: "*"
+      hour: "*"
+      job: "/opt/puppetlabs/puppet/bin/r10k deploy environment -p"
+
+
+
+- name: Slave provision
+  hosts: slaves
+  become: yes
+
+  tasks:
+
+  - name: Add master puppet into  /etc/hosts
+    lineinfile:
+      path: /etc/hosts
+      line: 192.168.50.5 master.puppet
+
+  - name: Add public key for puppet repo
+    rpm_key:
+      state: present
+      key: https://yum.puppet.com/RPM-GPG-KEY-puppet-20250406
+
+  - name: Add puppet repo
+    yum:
+      name: https://yum.puppet.com/puppet7-release-el-8.noarch.rpm
+      state: present
+      update_cache: yes
+
+  - name: Install packages
+    yum:
+      name: puppet-agent
+      state: present
+
+  - name: Config puppet agent
+    ini_file:
+      path: /etc/puppetlabs/puppet/puppet.conf
+      section: agent
+      option: "{{ item.option }}"
+      value: "{{ item.value }}"
+    with_items:
+    - {  option: "server", value: "master.puppet" }
+    - {  option: "runinterval", value: "30s" }
+
+  - name: Start puppet agent
+    service:
+      name: puppet
+      state: started
+      enabled: true

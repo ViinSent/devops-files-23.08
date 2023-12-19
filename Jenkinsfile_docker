@@ -1,6 +1,7 @@
 pipeline {
   agent { label '!go'}
   stages  {
+    agent { label '!go'}
     stage('Create docker-agent'){
         agent{
             dockerfile{

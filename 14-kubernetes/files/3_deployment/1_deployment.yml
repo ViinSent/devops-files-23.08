@@ -14,4 +14,4 @@ spec:
     spec:
       containers:
       - name: app
-        image: app:v1.0
+        image: app:v2.0

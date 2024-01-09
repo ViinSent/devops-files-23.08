@@ -1,0 +1,20 @@
+service:
+  port: 8080
+  name: helm-server1
+  
+replicas: 1
+
+container:
+  port: 8080
+  portName: http
+  label: server1
+  name: server
+
+image:
+  repository: api-server
+  tag: v1
+
+ingress:
+  host: sites.test.local
+  path: /svc1
+  pathType: Prefix

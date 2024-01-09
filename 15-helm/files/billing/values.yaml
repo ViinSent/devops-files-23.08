@@ -1,0 +1,52 @@
+postgresql:
+  global:
+    postgresql:
+      auth:
+        postgresPassword: "demopass"
+        username: "demouser"
+        password: "demopass"
+        database: "demodb"
+  fullnameOverride: "postgres"
+  primary:
+    persistence:
+      size: 1Gi
+
+replicaCount: 1
+
+image:
+  repository: billing-app
+  pullPolicy: IfNotPresent
+  tag: "v1"
+
+service:
+  type: ClusterIP
+  port: 80
+
+
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+initcontainer:
+  image:
+    repository: postgres
+    tag: 9.6
+
+ingress:
+  enabled: false
+  className: ""
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+    # kubernetes.io/tls-acme: "true"
+  hosts:
+    - host: sites.test.local
+      paths:
+        - path: /nginx
+          pathType: ImplementationSpecific
+  tls: []
+  #  - secretName: chart-example-tls
+  #    hosts:
+  #      - chart-example.local
+
+

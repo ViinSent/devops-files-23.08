@@ -1,0 +1,6 @@
+image:
+  tag: v2
+
+ingress:
+  host: sites-dev.test.local
+  path: "/"

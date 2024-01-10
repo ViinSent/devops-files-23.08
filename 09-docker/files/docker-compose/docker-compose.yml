@@ -1,0 +1,27 @@
+version: '3.3'
+services:
+  nginx:
+    image: nginx
+    ports:
+    - "8080:8080"
+    - "8081:8081"
+    networks:
+    - nginx-net
+    volumes:
+    - ./nginx.config:/etc/nginx/conf.d/reverse.conf
+    depends_on:
+    - static
+    - dynamic
+  static:
+    image: static
+    networks:
+    - nginx-net
+
+
+  dynamic: 
+    image: dynamic
+    networks:
+    - nginx-net
+
+networks:
+  nginx-net:

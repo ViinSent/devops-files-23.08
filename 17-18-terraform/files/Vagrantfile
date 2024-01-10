@@ -1,0 +1,65 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+Vagrant.configure("2") do |config|
+
+    config.vm.box = "generic/debian10"
+    config.vm.synced_folder  ".", "/vagrant", disabled: false
+    config.vm.network "private_network", ip: "192.168.33.40"
+  
+    config.vm.provider "virtualbox" do |vb|
+        vb.memory = 4096
+        vb.cpus   = 2
+        vb.customize ["modifyvm", :id, "--clipboard", "bidirectional"]
+        vb.gui = true
+    end
+    config.vm.provision "shell", inline: <<-SHELL
+        apt-get update
+        apt-get install -y ca-certificates curl gnupg lsb-release aptitude default-jre zip
+
+        # docker
+        curl -fsSL https://download.docker.com/linux/debian/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
+        echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/debian \
+            $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+
+        # helm
+        curl https://baltocdn.com/helm/signing.asc | gpg --dearmor | sudo tee /usr/share/keyrings/helm.gpg > /dev/null
+        echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/helm.gpg] https://baltocdn.com/helm/stable/debian/ all main" | sudo tee /etc/apt/sources.list.d/helm-stable-debian.list
+
+        # kubectl 
+        curl -fsSLo /usr/share/keyrings/kubernetes-archive-keyring.gpg https://packages.cloud.google.com/apt/doc/apt-key.gpg
+        echo "deb [signed-by=/usr/share/keyrings/kubernetes-archive-keyring.gpg] https://apt.kubernetes.io/ kubernetes-xenial main" | sudo tee /etc/apt/sources.list.d/kubernetes.list
+
+        apt-get update
+        apt-get install -y docker-ce docker-ce-cli containerd.io docker-compose helm kubectx kubectl gnome-core gnome
+        usermod -aG docker vagrant
+        
+        # minikube
+        curl -LO https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64
+        install minikube-linux-amd64 /usr/local/bin/minikube
+
+        sed -i "s/^#force_color_prompt=yes\$/force_color_prompt=yes/g" /home/vagrant/.bashrc
+        sed -i "s/^#alias ll='ls -l'\$/alias ll='ls -la'/g" /home/vagrant/.bashrc
+        sed -i "s/^#alias ll='ls -l'\$/alias ll='ls -la'/g" /root/.bashrc
+    
+        
+        systemctl enable gdm3
+        systemctl start gdm3 
+        echo "
+        alias kc=kubectl
+        alias kns=kubens
+        alias ktx=kubectx
+        " >> /home/vagrant/.bashrc
+    
+        #python
+        rm /usr/bin/python
+        ln -s /usr/bin/python3.7 /usr/bin/python
+        apt update && apt install -y python3-pip libpq-dev
+        ln -s /usr/bin/pip3 /usr/bin/pip      
+    SHELL
+
+        
+    config.vm.provision "shell", privileged: false, inline: <<-SHELL
+        minikube start
+    SHELL
+end

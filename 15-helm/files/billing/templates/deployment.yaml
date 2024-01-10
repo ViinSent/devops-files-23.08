@@ -1,0 +1,67 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "billing.fullname" . }}
+  labels:
+    {{- include "billing.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "billing.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "billing.selectorLabels" . | nindent 8 }}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+
+      initContainers:
+      - name: check-db-ready
+        image: {{ .Values.initcontainer.image.repository }}:{{ .Values.initcontainer.image.tag }}
+        command:
+        - sh
+        - -c
+        - until pg_isready -h {{ .Values.postgresql.fullnameOverride }} -p 5432; do echo database is not ready; sleep 2; done;
+      
+      - name: create-table
+        image: {{ .Values.initcontainer.image.repository }}:{{ .Values.initcontainer.image.tag }}
+        env:
+        - name: DB_USER
+          value: {{ .Values.postgresql.global.postgresql.auth.username }}
+        - name: DB_PASSWORD
+          value: {{ .Values.postgresql.global.postgresql.auth.password }}
+        - name: DB_NAME
+          value: {{ .Values.postgresql.global.postgresql.auth.database }}
+        command:
+        - sh
+        - -c
+        args:
+        - PGPASSWORD=$DB_PASSWORD psql -h {{ .Values.postgresql.fullnameOverride }} -p 5432 -w -d $DB_NAME -U $DB_USER
+          -c 'CREATE TABLE IF NOT EXISTS transactions (id serial PRIMARY KEY, client_id
+          varchar(100), amount integer);'
+
+      containers:
+      - name: {{ .Chart.Name }}
+        image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        env:
+        - name: DEBUG
+          value: "True"
+        - name: DB_USER
+          value: {{ .Values.postgresql.global.postgresql.auth.username }}
+        - name: DB_PASSWORD
+          value: {{ .Values.postgresql.global.postgresql.auth.password }}
+        - name: DB_NAME
+          value: {{ .Values.postgresql.global.postgresql.auth.database }}
+        - name: DATABASE_URL
+          value: postgresql://${DB_USER}:${DB_PASSWORD}@{{ .Values.postgresql.fullnameOverride }}/${DB_NAME}
+
+        ports:
+          - name: http
+            containerPort: 8080
+            protocol: TCP
+

@@ -2,7 +2,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: server1-dep
+  name: server1
 spec:
   replicas: 1
   selector:

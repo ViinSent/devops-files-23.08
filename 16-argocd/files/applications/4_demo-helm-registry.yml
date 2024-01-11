@@ -1,0 +1,30 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: test
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: development
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: demo
+  source:
+    repoURL: 'https://fenikks.github.io/devops-files-23.08/'
+    targetRevision: '*'
+    chart: demo
+    helm: 
+      values: |
+        replicas: 2
+        service:
+          port: 9070
+        image:
+          tag: v1
+
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+    - CreateNamespace=true

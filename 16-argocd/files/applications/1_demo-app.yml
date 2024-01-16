@@ -12,9 +12,9 @@ spec:
 
   # Source of the application manifests
   source:
-    repoURL: 'https://github.com/Fenikks/devops-files-23.07.git'  # Can point to either a Helm chart repo or a git repo.
+    repoURL: 'https://github.com/Fenikks/devops-files-23.08.git'  # Can point to either a Helm chart repo or a git repo.
     targetRevision: master  # For Helm, this refers to the chart version.
-    path: 14-kubernetes/5_ingress  # This has no meaning for Helm charts pulled directly from a Helm repo instead of git.
+    path: 14-kubernetes/files/5_ingress  # This has no meaning for Helm charts pulled directly from a Helm repo instead of git.
 
   # Destination cluster and namespace to deploy the application
   destination:

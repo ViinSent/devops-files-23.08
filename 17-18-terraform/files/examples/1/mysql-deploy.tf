@@ -1,6 +1,8 @@
 resource "kubernetes_deployment" "deploy-mysql" {
     metadata {
         name = "mysql-tf"
+        labels = local.labels
+        namespace = kubernetes_namespace.ns-wp.metadata[0].name
     }
     spec {
         replicas = 1
@@ -17,7 +19,7 @@ resource "kubernetes_deployment" "deploy-mysql" {
             }
             spec {
                 container {
-                    image = "mysql:8.0"
+                    image = var.mysql_image
                     name  = "mysql"
                     image_pull_policy = "IfNotPresent"
                     env_from {

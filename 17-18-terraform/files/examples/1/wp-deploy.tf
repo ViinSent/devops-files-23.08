@@ -1,6 +1,8 @@
 resource "kubernetes_deployment" "deploy-wp" {
     metadata {
         name = "wp-tf"
+        labels = local.labels
+        namespace = kubernetes_namespace.ns-wp.metadata[0].name
     }
     spec {
         replicas = 1
@@ -17,7 +19,7 @@ resource "kubernetes_deployment" "deploy-wp" {
             }
             spec {
                 container {
-                    image = "wordpress"
+                    image = var.wp_image
                     name  = "wp"
                     image_pull_policy = "IfNotPresent"
                     env {

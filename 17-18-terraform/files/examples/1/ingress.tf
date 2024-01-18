@@ -1,6 +1,8 @@
 resource "kubernetes_ingress_v1" "ingress_wp" {
     metadata {
         name = "wp-tf"
+        labels = local.labels
+        namespace = kubernetes_namespace.ns-wp.metadata[0].name
     }
     spec {
         default_backend {

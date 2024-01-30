@@ -13,7 +13,6 @@ spec:
       labels:
         app: billing
     spec:
-      serviceAccountName: vault-demo
       initContainers:
       - name: check-db-ready
         image: postgres:9.6
@@ -42,7 +41,7 @@ spec:
           varchar(100), amount integer);'
       containers:
       - name: billing
-        image: feniks/billing-app:v1-original
+        image: feniks/billing:v1.1
         imagePullPolicy: IfNotPresent
         env:
         - name: DEBUG
